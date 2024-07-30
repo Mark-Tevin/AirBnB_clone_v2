@@ -1,33 +1,35 @@
 #!/usr/bin/python3
+
 """
 Fabric script based on the file 2-do_deploy_web_static.py that creates and
-distributes an archive to the web servers
+distributes an archive to the web servers.
 
-execute: fab -f 3-deploy_web_static.py deploy -i ~/.ssh/id_rsa -u ubuntu
+Execute: fab -f 3-deploy_web_static.py deploy -i ~/.ssh/id_rsa -u ubuntu
 """
 
 from fabric.api import env, local, put, run
 from datetime import datetime
 from os.path import exists, isdir
+
 env.hosts = ['54.172.244.56', '54.160.65.170']
 
 
 def do_pack():
-    """generates a tgz archive"""
+    """Generates a tgz archive."""
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
-        if isdir("versions") is False:
+        if not isdir("versions"):
             local("mkdir versions")
         file_name = "versions/web_static_{}.tgz".format(date)
         local("tar -cvzf {} web_static".format(file_name))
         return file_name
-    except:
+    except Exception:
         return None
 
 
 def do_deploy(archive_path):
-    """distributes an archive to the web servers"""
-    if exists(archive_path) is False:
+    """Distributes an archive to the web servers."""
+    if not exists(archive_path):
         return False
     try:
         file_n = archive_path.split("/")[-1]
@@ -42,12 +44,12 @@ def do_deploy(archive_path):
         run('rm -rf /data/web_static/current')
         run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
-    except:
+    except Exception:
         return False
 
 
 def deploy():
-    """creates and distributes an archive to the web servers"""
+    """Creates and distributes an archive to the web servers."""
     archive_path = do_pack()
     if archive_path is None:
         return False
